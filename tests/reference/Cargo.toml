@@ -1,0 +1,13 @@
+[package]
+name = "sylph-read-sketch-reference"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Intentionally independent: ordinary fork tests never build or run this oracle.
+[workspace]
+
+[dependencies]
+sylph = { git = "https://github.com/bluenote-1577/sylph", rev = "1f7fcb53aa20b592d8b3b97f75d9971a60eb06e9" }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
