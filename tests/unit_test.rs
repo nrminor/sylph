@@ -1,3 +1,5 @@
+#![cfg(target_arch = "x86_64")]
+
 use assert_cmd::prelude::*; // Add methods on commands
 use sylph::seeding;
 
