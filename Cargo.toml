@@ -4,40 +4,59 @@ version = "1.0.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = ["cli"]
+cli = ["profiling", "dep:clap", "dep:termcolor", "dep:tikv-jemallocator"]
+profiling = ["file-io", "dep:statrs", "dep:fastrand"]
+file-io = [
+    "dep:needletail", "dep:simple_logger", "dep:log", "dep:rayon",
+    "dep:bincode", "dep:boomphf", "dep:flate2", "dep:rand",
+    "dep:memory-stats", "dep:scalable_cuckoo_filter", "dep:serde_yaml",
+    "dep:crossbeam-channel",
+]
+
+[[bin]]
+name = "sylph"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[[test]]
+name = "integration_test"
+path = "tests/integration_test.rs"
+required-features = ["cli"]
 
 [dependencies]
-needletail = "0.5.0"
-simple_logger=  { version = "3", features = ["stderr"] }
-log = "0"
-rayon = "1"
+needletail = { version = "0.5.0", optional = true }
+simple_logger = { version = "3", features = ["stderr"], optional = true }
+log = { version = "0", optional = true }
+rayon = { version = "1", optional = true }
 smallvec = { version = "1", features = ["union","serde","write"] }
 serde = { version = "1", features = ["derive"] }
-bincode = "1"
+bincode = { version = "1", optional = true }
 fxhash = "0"
-boomphf = { version = "0.6", features = ["serde"] }
-clap = { version = "3", features = ["derive"] }
-termcolor = "1"
-flate2 = { version = "1.0.17", features = ["zlib-ng"], default-features = false }
-statrs="0.16"
-nalgebra="0"
-rand = { version = "0.8", features = ["small_rng"] }
-regex = "1"
-fastrand = "2"
-memory-stats = "1"
-scalable_cuckoo_filter = "0.2"
-serde_yaml = "0.9"
-crossbeam-channel = "0.5"
+boomphf = { version = "0.6", features = ["serde"], optional = true }
+clap = { version = "3", features = ["derive"], optional = true }
+termcolor = { version = "1", optional = true }
+# Select the legacy native gzip backend only for file-oriented builds.
+flate2 = { version = "1.0.17", features = ["zlib-ng"], default-features = false, optional = true }
+statrs = { version = "0.16", optional = true }
+rand = { version = "0.8", features = ["small_rng"], optional = true }
+fastrand = { version = "2", optional = true }
+memory-stats = { version = "1", optional = true }
+scalable_cuckoo_filter = { version = "0.2", optional = true }
+serde_yaml = { version = "0.9", optional = true }
+crossbeam-channel = { version = "0.5", optional = true }
 thiserror = "=2.0.21"
 
 [target.'cfg(target_env = "musl")'.dependencies]
-tikv-jemallocator = "0"
+tikv-jemallocator = { version = "0", optional = true }
 
 
 [dev-dependencies]
 assert_cmd = "1.0.1"
 predicates = "1"
 serial_test = "*"
+serde_yaml = "0.9"
 
 
 [profile.release]

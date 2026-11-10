@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-test:
-    name: "Build + sylph -h (${{ matrix.name }})"
+    name: "Features, tests, and CLI (${{ matrix.name }})"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -24,8 +24,43 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Core production dependency boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          graph=$(cargo tree --locked --no-default-features --edges normal,build --target all --prefix none --format '{p}')
+          printf '%s\n' "$graph"
+          if printf '%s\n' "$graph" | grep -E '^(clap|needletail|flate2|statrs|nalgebra|regex|serde_yaml|simple_logger|memory-stats|tikv-jemallocator|rayon|boomphf|rand|fastrand|scalable_cuckoo_filter|crossbeam-channel|bincode|log|termcolor|cc|cmake|pkg-config) v'; then
+            echo 'CLI, file-I/O, profiling, or native-build dependency leaked into core' >&2
+            exit 1
+          fi
+
+      - name: Core library and scientific fixtures
+        run: |
+          cargo build --locked --no-default-features --lib
+          cargo test --locked --no-default-features --lib --test read_sketch
+
+      - name: Binary requires CLI feature
+        shell: bash
+        run: |
+          set -euo pipefail
+          if output=$(cargo build --locked --no-default-features --bin sylph 2>&1); then
+            echo 'The binary must require the cli feature' >&2
+            exit 1
+          fi
+          printf '%s\n' "$output"
+          printf '%s\n' "$output" | grep -F 'requires the features: `cli`'
+
+      - name: File-I/O and profiling capabilities
+        run: |
+          cargo test --locked --no-default-features --features file-io --lib --test read_sketch
+          cargo test --locked --no-default-features --features profiling --lib --test read_sketch
+
+      - name: Default tests
+        run: cargo test --locked
+
       - name: Build (release)
-        run: cargo build --release
+        run: cargo build --locked --release
 
       - name: Run sylph -h
         run: ./target/release/sylph -h

@@ -40,10 +40,8 @@
 //! only implements *how*, and always assumes it's worth doing.
 
 use crate::constants::*;
-use crate::sketch::{
-    dup_removal_lsh_full, dup_removal_lsh_full_exact, extract_markers, pair_kmer,
-    pair_kmer_single, Marker,
-};
+use crate::sketch_core::{dup_removal_lsh_full_exact, extract_markers, pair_kmer_single, Marker};
+use crate::sketch_files::{dup_removal_lsh_full, pair_kmer};
 use crate::types::*;
 use crossbeam_channel::{bounded, Receiver, Sender};
 use fxhash::{FxHashMap, FxHashSet, FxHasher};

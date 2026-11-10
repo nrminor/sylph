@@ -25,6 +25,25 @@ Documentation, installation, and usage information is available at https://sylph
 
 This fork adds `sylph::read_sketch::ReadSketcher`. It accepts ordered batches of complete sequences without opening files, initializing a logger or thread pool, or retaining the reads. Parameters are fixed at construction. The current interface supports `k = 21` or `31` and a positive sampling factor `c`.
 
+For an embedded accumulator, select this fork with `default-features = false` in the Cargo dependency declaration. The core retains the existing scientific types and their Serde implementations, but does not compile file readers, compression backends, CLI parsing, or profiling dependencies. Calls to `ReadSketcher` are unchanged.
+
+Features are nested, not independent:
+
+```text
+default -> cli -> profiling -> file-io -> core (always available)
+```
+
+| Selection | Additional capabilities |
+| --- | --- |
+| No default features | `read_sketch`, `types`, constants, seeding, and `sketch` marker extraction |
+| `file-io` | File sketching and its parallel pipeline, database conversion, inspection, and plain configuration structs in `cmdline` |
+| `profiling` | Existing query/profile routines and inference, including file I/O |
+| `cli` (default) | Complete `sylph` executable and Clap parsing for the configuration structs |
+
+The default build preserves the existing CLI and public module paths. The binary requires `cli`; there is no reduced-command CLI. `file-io` retains the existing gzip/bzip2/xz readers and native `zlib-ng` selection. A core-only consumer can choose its own compression backend without sylph enabling one. Cargo features are additive: another dependency enabling sylph's defaults will also enable them for that build.
+
+File and profiling entry points retain their existing global logger/thread-pool initialization and process-exit behavior. Enabling `profiling` does not make these entry points safe for embedding in a service. Configuration structs without Clap are plain data; Rust's `SketchArgs::default()` still supplies field defaults, not the CLI's scientific defaults.
+
 ```rust
 use sylph::read_sketch::{Deduplication, ReadSketcher, SketchParams};
 
@@ -45,6 +64,7 @@ Compatibility tests compare every prefix at every contiguous partition of small 
 
 ```sh
 cargo test --locked --test read_sketch
+cargo test --locked --no-default-features --lib --test read_sketch
 ```
 
 To regenerate the expectations explicitly:

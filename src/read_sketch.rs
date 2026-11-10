@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::{
     constants::MAX_DEDUP_COUNT,
-    sketch::{dup_removal_lsh_full_exact, extract_markers, pair_kmer_single, Marker},
+    sketch_core::{dup_removal_lsh_full_exact, extract_markers, pair_kmer_single, Marker},
     types::SequencesSketch,
 };
 

@@ -1219,7 +1219,7 @@ fn get_kmer_identity(seq_sketch: &SequencesSketch, estimate_unknown: bool) -> Op
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "cli"))]
 mod min_number_kmers_tests {
     use super::*;
     use clap::Parser;
