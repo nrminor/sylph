@@ -27,22 +27,26 @@ This fork adds `sylph::read_sketch::ReadSketcher`. It accepts ordered batches of
 
 For an embedded accumulator, select this fork with `default-features = false` in the Cargo dependency declaration. The core retains the existing scientific types and their Serde implementations, but does not compile file readers, compression backends, CLI parsing, or profiling dependencies. Calls to `ReadSketcher` are unchanged.
 
-Features are nested, not independent:
+Legacy features include their dependencies; `profile-core` can also be selected without file I/O:
 
 ```text
-default -> cli -> profiling -> file-io -> core (always available)
+default -> cli -> profiling --+--> file-io
+                             +--> profile-core
+
+core is always available
 ```
 
 | Selection | Additional capabilities |
 | --- | --- |
 | No default features | `read_sketch`, `types`, constants, seeding, and `sketch` marker extraction |
 | `file-io` | File sketching and its parallel pipeline, database conversion, inspection, and plain configuration structs in `cmdline` |
-| `profiling` | Existing query/profile routines and inference, including file I/O |
+| `profile-core` | Reusable profiling and standard `.syldb` loading, without FASTX or native compression |
+| `profiling` | Existing query/profile routines and inference, including `file-io` and `profile-core` |
 | `cli` (default) | Complete `sylph` executable and Clap parsing for the configuration structs |
 
 The default build preserves the existing CLI and public module paths. The binary requires `cli`; there is no reduced-command CLI. `file-io` retains the existing gzip/bzip2/xz readers and native `zlib-ng` selection. A core-only consumer can choose its own compression backend without sylph enabling one. Cargo features are additive: another dependency enabling sylph's defaults will also enable them for that build.
 
-File and profiling entry points retain their existing global logger/thread-pool initialization and process-exit behavior. Enabling `profiling` does not make these entry points safe for embedding in a service. Configuration structs without Clap are plain data; Rust's `SketchArgs::default()` still supplies field defaults, not the CLI's scientific defaults.
+Legacy command entry points retain their existing global logger/thread-pool initialization and process-exit behavior. Do not call `contain::contain` from a service; use `profile::Profiler` instead. Configuration structs without Clap are plain data; Rust's `SketchArgs::default()` still supplies field defaults, not the CLI's scientific defaults.
 
 ```rust
 use sylph::read_sketch::{Deduplication, ReadSketcher, SketchParams};
@@ -76,6 +80,42 @@ cargo run --locked --manifest-path tests/reference/Cargo.toml
 The generator has a separate lockfile and a Git dependency on the unchanged upstream revision. Its native compression dependencies require a C compiler and CMake. Fixture metadata records the revision, compiler, target, and extraction backend. Generation checks that the inputs actually distinguish the duplicate policies and boundary cases.
 
 This patch preserves upstream CPU dispatch. At the pinned revision, AVX2 extraction omits up to three trailing windows that scalar extraction includes. The fixtures avoid sampled omitted windows; passing them is not a general claim of scalar/AVX2 equivalence. The accumulator still follows whole-file extraction on the same backend. Overflow-limit behavior is guarded in code but is not exercised by the small scientific fixtures.
+
+### Reusable profiling
+
+Select `default-features = false, features = ["profile-core"]` to calculate a complete profile from an existing sketch. `Profiler` loads a standard `.syldb` once, validates every reference, and owns an explicitly sized local Rayon pool. It neither configures global logging nor initializes Rayon's global pool. `from_genomes` adopts already-loaded sketches through the same validation path.
+
+```rust
+use sylph::profile::{ProfileOptions, Profiler};
+
+let profiler = Profiler::open_syldb("reference.syldb", ProfileOptions::default(), 3)?;
+let profile = profiler.profile(sketcher.sketch())?;
+```
+
+The calculation includes filtering, shared-marker reassignment, coverage correction, and abundance normalization. Results own their names and numeric estimates, not the reference or sample sketches. Options remain fixed for the profiler's lifetime and accompany each result. Percentages and experimental estimated read counts have distinct `SequenceEstimate` variants. ANI values and intervals use fractional units; raw adjusted ANI can exceed one, as in upstream's internal estimates. The legacy CLI alone caps its displayed adjusted ANI at 100 percent.
+
+`ProfileOptions::default()` matches the CLI's scientific profiling defaults. Controls include minimum ANI, contained/reference-marker thresholds, confidence intervals, unknown-fraction correction, experimental read-count estimation, and a read-identity override for corrected modes. Missing intervals remain absent; the result's options distinguish unavailable intervals from disabled calculation. Unknown correction retains upstream's automatic identity heuristic, whose short-read fallback depends on marker-map iteration order. Equal marker maps alone do not establish equal corrected profiles. Tied detections also retain upstream's unspecified parallel ordering.
+
+Invalid configurations, reference/sample incompatibility, unsupported arithmetic ranges, and undefined estimates return errors without partial rows. Valid empty/no-hit samples return empty profiles. Standard databases are operator-provided local inputs; this is not an untrusted-upload parser. References must contain profiling markers and use a common supported k; a sample must have the same k and must not be sparser than any reference. Two-stage databases and raw/compressed input loading remain outside this interface.
+
+Coverage sums retain upstream's `u32` limit, including each bootstrap resample. Inference vectors are conservatively limited to `i32::MAX` entries because legacy estimators use signed histogram counters. Unknown correction also checks the sample-wide count sum and covered-base multiplication for overflow. These checks reject unsupported arithmetic instead of changing the estimators' integer widths.
+
+Calls are synchronous, retain no sample state, and are not cancellable. A service should run them outside its async executor threads and control concurrent work. Do not hold an ingestion lock throughout profiling unless pausing ingestion is intentional. This interface adds no refresh scheduler, snapshot copying, publication endpoint, or restart recovery.
+
+Profile compatibility uses a separate synthetic cohort and a driver linked to the unchanged upstream revision above. It exercises ordered prefixes, strict shared-marker competition, filtering, multiple survivors, abundance normalization, and confidence intervals. Expectations are compared semantically at the original CLI's printed precision, not as proof of identical unrounded results. Normal tests consume the frozen data:
+
+```sh
+cargo test --locked --no-default-features --features profile-core --test profile
+```
+
+Explicit regeneration uses the separately locked reference crate. The driver calls upstream's public parser and command routines; it is not the original CLI executable and contains no adapted scientific implementation. Generation requires upstream's native build dependencies. Use a disposable directory for intermediate files:
+
+```sh
+cargo run --locked --manifest-path tests/reference/Cargo.toml --bin profile-reference -- generate "$ORACLE_DIR"
+cargo run --locked --manifest-path tests/reference/Cargo.toml --bin profile-reference -- freeze "$ORACLE_DIR" tests/fixtures/profile
+cargo run --locked --manifest-path tests/reference/Cargo.toml --bin profile-reference -- generate-options "$ORACLE_DIR"
+cargo run --locked --manifest-path tests/reference/Cargo.toml --bin profile-reference -- freeze-options "$ORACLE_DIR" tests/fixtures/profile/options.yaml
+```
 
 ## Citing sylph
 

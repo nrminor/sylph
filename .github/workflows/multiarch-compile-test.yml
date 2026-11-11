@@ -40,6 +40,22 @@ jobs:
           cargo build --locked --no-default-features --lib
           cargo test --locked --no-default-features --lib --test read_sketch
 
+      - name: Embeddable profiling dependency boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          graph=$(cargo tree --locked --no-default-features --features profile-core --edges normal,build --target all --prefix none --format '{p}')
+          printf '%s\n' "$graph"
+          if printf '%s\n' "$graph" | grep -E '^(clap|needletail|flate2|regex|serde_yaml|simple_logger|memory-stats|tikv-jemallocator|boomphf|scalable_cuckoo_filter|crossbeam-channel|termcolor|cc|cmake|pkg-config) v'; then
+            echo 'CLI, FASTX, or native-build dependency leaked into profile-core' >&2
+            exit 1
+          fi
+
+      - name: Embeddable profiling and independent expectations
+        run: |
+          cargo test --locked --no-default-features --features profile-core --lib --test read_sketch --test profile
+          cargo doc --locked --no-default-features --features profile-core --no-deps
+
       - name: Binary requires CLI feature
         shell: bash
         run: |

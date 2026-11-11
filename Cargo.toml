@@ -7,7 +7,8 @@ license = "MIT OR Apache-2.0"
 [features]
 default = ["cli"]
 cli = ["profiling", "dep:clap", "dep:termcolor", "dep:tikv-jemallocator"]
-profiling = ["file-io", "dep:statrs", "dep:fastrand"]
+profiling = ["file-io", "profile-core"]
+profile-core = ["dep:statrs", "dep:fastrand", "dep:rayon", "dep:log", "dep:bincode"]
 file-io = [
     "dep:needletail", "dep:simple_logger", "dep:log", "dep:rayon",
     "dep:bincode", "dep:boomphf", "dep:flate2", "dep:rand",
@@ -24,6 +25,11 @@ required-features = ["cli"]
 name = "integration_test"
 path = "tests/integration_test.rs"
 required-features = ["cli"]
+
+[[test]]
+name = "profile"
+path = "tests/profile.rs"
+required-features = ["profile-core"]
 
 [dependencies]
 needletail = { version = "0.5.0", optional = true }

@@ -1,8 +1,9 @@
 //! Read sketch accumulation is available without default features.
 //!
-//! Capabilities are nested: `cli` (the default) enables `profiling`, which
-//! enables `file-io`. File and profiling entry points retain their legacy
-//! process and global-state behavior; use [`read_sketch`] for embedding.
+//! `cli` (the default) enables legacy `profiling`, which enables `file-io` and
+//! `profile-core`. Enable `profile-core` alone for reusable standard-database
+//! profiling through `profile::Profiler`, without FASTX or native compression.
+//! Legacy command entry points retain their process and global-state behavior.
 
 pub mod constants;
 pub mod read_sketch;
@@ -11,12 +12,19 @@ pub mod sketch;
 mod sketch_core;
 pub mod types;
 
+#[cfg(feature = "profile-core")]
+pub mod profile;
+#[cfg(feature = "profile-core")]
+mod profile_core;
+
 #[cfg(feature = "file-io")]
 pub mod cmdline;
 #[cfg(feature = "profiling")]
 pub mod contain;
 #[cfg(feature = "profiling")]
 pub mod inference;
+#[cfg(all(feature = "profile-core", not(feature = "profiling")))]
+mod inference;
 #[cfg(feature = "file-io")]
 pub mod inspect;
 #[cfg(feature = "file-io")]
