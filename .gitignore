@@ -16,3 +16,4 @@ target/
 tests/results/
 
 *.syl*
+!tests/fixtures/profile/reference.syldb

@@ -1,0 +1,302 @@
+revision: 1f7fcb53aa20b592d8b3b97f75d9971a60eb06e9
+oracle: Independent driver calling unchanged pinned public CLI parser and contain::contain, not an original upstream binary. No adapted scientific bodies.
+fixed_cohort: default.yaml
+prefix_end: 143
+repetitions: 5
+rustc: |
+  rustc 1.99.1 (58cf8f9c3 2026-10-13)
+  binary: rustc
+  commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67
+  commit-date: 2026-10-13
+  host: aarch64-apple-darwin
+  release: 1.99.1
+  LLVM version: 23.1.1
+target: aarch64-apple-darwin
+extraction_backend: scalar
+precision_and_limits: Same rounded-semantic precision and backend limitations as default.yaml. Five fresh raw-input processes per configuration agree. Every read is 510 bases, excluding the order-sensitive short-read fallback; this does not establish general -u map-order invariance. No unrounded full-profile oracle. Sequence_abundance is percent except estimated_read_counts, which is a rounded experimental read-count estimate printed to four decimals. Effective coverage includes unknown correction; Eff_lambda and its interval do not.
+fixed_cohort_sha256: |
+  8af09a9fbabe124676d25ae9d00a24e0e59bde756b28d16ab506b37617fef966  default.yaml
+  372b9f1118b672b3f5038807b50a4ab1f829f247320c22fa9dd0ff8e697afa08  reference.syldb
+raw_input_sha256: |
+  b74c8d0806b7371b0b542b199f747cffacaae9fb712b499ffc41eba72e056afb  prefix2.fq
+generator_sha256: |
+  2e4c2a2dd36e9814059d04b97b9155703e9823f2413dc77f0c61e33e36996efa  Cargo.toml
+  f2b621e67ea13ab6d5999923ab7cba23ad7e89220b90c830fb6b32a5b63cacf6  Cargo.lock
+  751080a30f9c05d5de6ae22aa8743d18c5655dac18a6490e8d2ed1615240fa27  src/bin/profile-reference.rs
+  25acbf8ae3b2dd69ffb337df94e8d40ac390b610ae21eca57dd0f29ec7484d43  src/profile_options.rs
+cases:
+- name: minimum_ani
+  arguments:
+  - profile
+  - reference.syldb
+  - prefix2.fq
+  - -c
+  - '20'
+  - -t
+  - '1'
+  - --no-sketch-pipeline
+  - --log-reassignments
+  - --minimum-ani
+  - '99.9'
+  - -o
+  - options-minimum_ani.repeat0.tsv
+  rows:
+  - ANI_5-95_percentile: 100.60-101.64
+    Adjusted_ANI: '100.00'
+    Containment_ind: 164/167
+    Contig_name: synthetic_a
+    Eff_cov: '1.253'
+    Eff_lambda: '1.253'
+    Genome_file: a.fa
+    Lambda_5-95_percentile: 0.88-1.66
+    Mean_cov_geq1: '2.585'
+    Median_cov: '2'
+    Naive_ANI: '99.94'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '100.0000'
+    Taxonomic_abundance: '100.0000'
+    kmers_reassigned: '0'
+- name: min_contain
+  arguments:
+  - profile
+  - reference.syldb
+  - prefix2.fq
+  - -c
+  - '20'
+  - -t
+  - '1'
+  - --no-sketch-pipeline
+  - --log-reassignments
+  - --min-contain
+  - '163'
+  - -o
+  - options-min_contain.repeat0.tsv
+  rows:
+  - ANI_5-95_percentile: 100.60-101.64
+    Adjusted_ANI: '100.00'
+    Containment_ind: 164/167
+    Contig_name: synthetic_a
+    Eff_cov: '1.253'
+    Eff_lambda: '1.253'
+    Genome_file: a.fa
+    Lambda_5-95_percentile: 0.88-1.66
+    Mean_cov_geq1: '2.585'
+    Median_cov: '2'
+    Naive_ANI: '99.94'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '100.0000'
+    Taxonomic_abundance: '100.0000'
+    kmers_reassigned: '0'
+- name: min_number_kmers
+  arguments:
+  - profile
+  - reference.syldb
+  - prefix2.fq
+  - -c
+  - '20'
+  - -t
+  - '1'
+  - --no-sketch-pipeline
+  - --log-reassignments
+  - --min-number-kmers
+  - '190'
+  - -o
+  - options-min_number_kmers.repeat0.tsv
+  rows:
+  - ANI_5-95_percentile: NA-NA
+    Adjusted_ANI: '100.00'
+    Containment_ind: 207/207
+    Contig_name: synthetic_b
+    Eff_cov: '4.995'
+    Eff_lambda: HIGH
+    Genome_file: b.fa
+    Lambda_5-95_percentile: NA-NA
+    Mean_cov_geq1: '4.995'
+    Median_cov: '5'
+    Naive_ANI: '100.00'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '100.0000'
+    Taxonomic_abundance: '100.0000'
+    kmers_reassigned: '0'
+- name: confidence_intervals_disabled
+  arguments:
+  - profile
+  - reference.syldb
+  - prefix2.fq
+  - -c
+  - '20'
+  - -t
+  - '1'
+  - --no-sketch-pipeline
+  - --log-reassignments
+  - --no-ci
+  - -o
+  - options-confidence_intervals_disabled.repeat0.tsv
+  rows:
+  - ANI_5-95_percentile: NA-NA
+    Adjusted_ANI: '99.21'
+    Containment_ind: 162/207
+    Contig_name: synthetic_b
+    Eff_cov: '4.772'
+    Eff_lambda: HIGH
+    Genome_file: b.fa
+    Lambda_5-95_percentile: NA-NA
+    Mean_cov_geq1: '4.772'
+    Median_cov: '5'
+    Naive_ANI: '99.21'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '82.6249'
+    Taxonomic_abundance: '79.1976'
+    kmers_reassigned: '45'
+  - ANI_5-95_percentile: NA-NA
+    Adjusted_ANI: '100.00'
+    Containment_ind: 164/167
+    Contig_name: synthetic_a
+    Eff_cov: '1.253'
+    Eff_lambda: '1.253'
+    Genome_file: a.fa
+    Lambda_5-95_percentile: NA-NA
+    Mean_cov_geq1: '2.585'
+    Median_cov: '2'
+    Naive_ANI: '99.94'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '17.3751'
+    Taxonomic_abundance: '20.8024'
+    kmers_reassigned: '0'
+- name: unknown_auto_identity
+  arguments:
+  - profile
+  - reference.syldb
+  - prefix2.fq
+  - -c
+  - '20'
+  - -t
+  - '1'
+  - --no-sketch-pipeline
+  - --log-reassignments
+  - -u
+  - -o
+  - options-unknown_auto_identity.repeat0.tsv
+  rows:
+  - ANI_5-95_percentile: NA-NA
+    Adjusted_ANI: '99.21'
+    Containment_ind: 162/207
+    Contig_name: synthetic_b
+    Eff_lambda: HIGH
+    Genome_file: b.fa
+    Lambda_5-95_percentile: NA-NA
+    Mean_cov_geq1: '4.772'
+    Median_cov: '5'
+    Naive_ANI: '99.21'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '82.6249'
+    Taxonomic_abundance: '79.1976'
+    True_cov: '6.447'
+    kmers_reassigned: '45'
+  - ANI_5-95_percentile: 100.60-101.64
+    Adjusted_ANI: '100.00'
+    Containment_ind: 164/167
+    Contig_name: synthetic_a
+    Eff_lambda: '1.253'
+    Genome_file: a.fa
+    Lambda_5-95_percentile: 0.88-1.66
+    Mean_cov_geq1: '2.585'
+    Median_cov: '2'
+    Naive_ANI: '99.94'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '17.3751'
+    Taxonomic_abundance: '20.8024'
+    True_cov: '1.693'
+    kmers_reassigned: '0'
+- name: estimated_read_counts
+  arguments:
+  - profile
+  - reference.syldb
+  - prefix2.fq
+  - -c
+  - '20'
+  - -t
+  - '1'
+  - --no-sketch-pipeline
+  - --log-reassignments
+  - --estimate-read-counts
+  - -o
+  - options-estimated_read_counts.repeat0.tsv
+  rows:
+  - ANI_5-95_percentile: NA-NA
+    Adjusted_ANI: '99.21'
+    Containment_ind: 162/207
+    Contig_name: synthetic_b
+    Eff_lambda: HIGH
+    Genome_file: b.fa
+    Lambda_5-95_percentile: NA-NA
+    Mean_cov_geq1: '4.772'
+    Median_cov: '5'
+    Naive_ANI: '99.21'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '127.0000'
+    Taxonomic_abundance: '79.1976'
+    True_cov: '6.447'
+    kmers_reassigned: '45'
+  - ANI_5-95_percentile: 100.60-101.64
+    Adjusted_ANI: '100.00'
+    Containment_ind: 164/167
+    Contig_name: synthetic_a
+    Eff_lambda: '1.253'
+    Genome_file: a.fa
+    Lambda_5-95_percentile: 0.88-1.66
+    Mean_cov_geq1: '2.585'
+    Median_cov: '2'
+    Naive_ANI: '99.94'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '27.0000'
+    Taxonomic_abundance: '20.8024'
+    True_cov: '1.693'
+    kmers_reassigned: '0'
+- name: unknown_explicit_identity
+  arguments:
+  - profile
+  - reference.syldb
+  - prefix2.fq
+  - -c
+  - '20'
+  - -t
+  - '1'
+  - --no-sketch-pipeline
+  - --log-reassignments
+  - -u
+  - -I
+  - '99'
+  - -o
+  - options-unknown_explicit_identity.repeat0.tsv
+  rows:
+  - ANI_5-95_percentile: NA-NA
+    Adjusted_ANI: '99.21'
+    Containment_ind: 162/207
+    Contig_name: synthetic_b
+    Eff_lambda: HIGH
+    Genome_file: b.fa
+    Lambda_5-95_percentile: NA-NA
+    Mean_cov_geq1: '4.772'
+    Median_cov: '5'
+    Naive_ANI: '99.21'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '82.6249'
+    Taxonomic_abundance: '79.1976'
+    True_cov: '6.923'
+    kmers_reassigned: '45'
+  - ANI_5-95_percentile: 100.60-101.64
+    Adjusted_ANI: '100.00'
+    Containment_ind: 164/167
+    Contig_name: synthetic_a
+    Eff_lambda: '1.253'
+    Genome_file: a.fa
+    Lambda_5-95_percentile: 0.88-1.66
+    Mean_cov_geq1: '2.585'
+    Median_cov: '2'
+    Naive_ANI: '99.94'
+    Sample_file: prefix2.fq
+    Sequence_abundance: '17.3751'
+    Taxonomic_abundance: '20.8024'
+    True_cov: '1.818'
+    kmers_reassigned: '0'
