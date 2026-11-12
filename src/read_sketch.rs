@@ -29,6 +29,17 @@ pub struct SketchParams {
     pub deduplication: Deduplication,
 }
 
+impl Default for SketchParams {
+    /// Use sylph's single-end defaults; these need not match a particular database.
+    fn default() -> Self {
+        Self {
+            c: 200,
+            k: 31,
+            deduplication: Deduplication::Exact,
+        }
+    }
+}
+
 /// A rejected configuration or read. Read indices are local to an `extend` call.
 #[derive(Debug, Error, Eq, PartialEq)]
 pub enum SketchError {

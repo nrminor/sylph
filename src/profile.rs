@@ -225,6 +225,30 @@ impl Profiler {
         })
     }
 
+    /// Check sample sampling parameters against the resident references.
+    ///
+    /// This performs no profiling and does not require any reads or marker counts.
+    /// Hosts can reject incompatible configuration before admitting sample data.
+    ///
+    /// # Errors
+    /// Rejects unsupported k, zero c, mismatched k, or a sample sparser than a reference.
+    pub fn validate_sample_parameters(&self, c: usize, k: usize) -> Result<(), ProfileError> {
+        if c == 0 || !matches!(k, 21 | 31) {
+            return Err(ProfileError::InvalidSketch(
+                "c must be positive and k must be 21 or 31",
+            ));
+        }
+        if k != self.k || c > self.minimum_c {
+            return Err(ProfileError::IncompatibleSketch {
+                sample_c: c,
+                sample_k: k,
+                reference_c: self.minimum_c,
+                reference_k: self.k,
+            });
+        }
+        Ok(())
+    }
+
     /// Calculate a complete profile of this sketch without retaining or mutating it.
     /// Valid empty/no-hit samples return an empty result. Detections can change
     /// or disappear when later evidence is profiled; this is not incremental inference.
@@ -233,19 +257,7 @@ impl Profiler {
     /// Rejects invalid or incompatible sketches, unrepresentable arithmetic,
     /// and undefined estimates in the requested mode. No partial rows are returned.
     pub fn profile(&self, sketch: &SequencesSketch) -> Result<Profile, ProfileError> {
-        if sketch.c == 0 || !matches!(sketch.k, 21 | 31) {
-            return Err(ProfileError::InvalidSketch(
-                "c must be positive and k must be 21 or 31",
-            ));
-        }
-        if sketch.k != self.k || sketch.c > self.minimum_c {
-            return Err(ProfileError::IncompatibleSketch {
-                sample_c: sketch.c,
-                sample_k: sketch.k,
-                reference_c: self.minimum_c,
-                reference_k: self.k,
-            });
-        }
+        self.validate_sample_parameters(sketch.c, sketch.k)?;
         if !sketch.mean_read_length.is_finite()
             || sketch.mean_read_length < 0.0
             || (!sketch.kmer_counts.is_empty() && sketch.mean_read_length == 0.0)

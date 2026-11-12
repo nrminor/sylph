@@ -142,7 +142,9 @@ mod kmer_counts {
     }
 }
 
-#[derive(Default, Deserialize, Serialize, Debug, PartialEq)]
+/// Sample marker counts and metadata, without accumulator duplicate history.
+/// Cloning copies the marker map directly rather than rebuilding it from entries.
+#[derive(Clone, Default, Deserialize, Serialize, Debug, PartialEq)]
 pub struct SequencesSketch{
     #[serde(with = "kmer_counts")]
     pub kmer_counts: FxHashMap<Kmer, u32>,
